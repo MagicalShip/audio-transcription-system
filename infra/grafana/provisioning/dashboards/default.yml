@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: Audio pipeline
+    folder: Distributed Systems
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

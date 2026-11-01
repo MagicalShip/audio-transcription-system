@@ -1,0 +1,18 @@
+{
+  "title": "Audio Pipeline",
+  "uid": "audio-pipeline",
+  "schemaVersion": 41,
+  "refresh": "5s",
+  "time": {"from": "now-15m", "to": "now"},
+  "panels": [
+    {"id": 1, "type": "timeseries", "title": "HTTP request rate", "gridPos": {"x": 0, "y": 0, "w": 8, "h": 8}, "targets": [{"expr": "sum(rate(job_http_requests_total[1m]))", "legendFormat": "requests/s"}]},
+    {"id": 2, "type": "timeseries", "title": "HTTP error rate", "gridPos": {"x": 8, "y": 0, "w": 8, "h": 8}, "targets": [{"expr": "sum(rate(job_http_requests_total{status=~\"4..|5..\"}[1m]))", "legendFormat": "errors/s"}]},
+    {"id": 3, "type": "timeseries", "title": "HTTP p95 latency", "gridPos": {"x": 16, "y": 0, "w": 8, "h": 8}, "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(job_http_request_duration_seconds_bucket[5m])))", "legendFormat": "p95"}]},
+    {"id": 4, "type": "stat", "title": "Active jobs", "gridPos": {"x": 0, "y": 8, "w": 6, "h": 6}, "targets": [{"expr": "jobs_active"}]},
+    {"id": 5, "type": "timeseries", "title": "RabbitMQ queue depth", "gridPos": {"x": 6, "y": 8, "w": 9, "h": 6}, "targets": [{"expr": "rabbitmq_queue_messages", "legendFormat": "{{queue}}"}]},
+    {"id": 6, "type": "timeseries", "title": "Transcription real-time factor", "gridPos": {"x": 15, "y": 8, "w": 9, "h": 6}, "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(transcription_realtime_factor_bucket[5m])))", "legendFormat": "p95"}]},
+    {"id": 7, "type": "timeseries", "title": "Translation tokens", "gridPos": {"x": 0, "y": 14, "w": 12, "h": 7}, "targets": [{"expr": "sum by (kind) (rate(translation_tokens_total[5m]))", "legendFormat": "{{kind}} tokens/s"}]},
+    {"id": 8, "type": "stat", "title": "Translation circuit", "gridPos": {"x": 12, "y": 14, "w": 6, "h": 7}, "targets": [{"expr": "translation_circuit_open"}]},
+    {"id": 9, "type": "timeseries", "title": "Processing latency", "gridPos": {"x": 18, "y": 14, "w": 6, "h": 7}, "targets": [{"expr": "rate(transcription_processing_seconds_sum[5m])/rate(transcription_processing_seconds_count[5m])", "legendFormat": "transcription"}, {"expr": "rate(translation_processing_seconds_sum[5m])/rate(translation_processing_seconds_count[5m])", "legendFormat": "translation"}]}
+  ]
+}

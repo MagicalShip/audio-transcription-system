@@ -1,0 +1,142 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: audio_pipeline
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d audio_pipeline"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "15672:15672"
+      - "15692:15692"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  job-service:
+    build:
+      context: .
+      dockerfile: job_service/Dockerfile
+    ports:
+      - "8000:8000"
+    environment: &common-environment
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/audio_pipeline
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq/
+      STORAGE_ROOT: /data/audio-jobs
+      MAX_RETRIES: 2
+      RETRY_BASE_SECONDS: 1
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-209715200}
+      MAX_ACTIVE_JOBS: ${MAX_ACTIVE_JOBS:-20}
+    depends_on:
+      postgres: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+    volumes:
+      - audio-data:/data/audio-jobs
+    restart: unless-stopped
+
+  audio-service:
+    build:
+      context: .
+      dockerfile: audio_service/Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      <<: *common-environment
+      METRICS_PORT: 8000
+      MAX_AUDIO_SECONDS: 1800
+      SEGMENT_SECONDS: 30
+      OVERLAP_SECONDS: 0.5
+    depends_on:
+      postgres: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+    volumes:
+      - audio-data:/data/audio-jobs
+    restart: unless-stopped
+
+  transcription-service:
+    build:
+      context: .
+      dockerfile: transcription_service/Dockerfile
+      args:
+        INSTALL_LOCAL_AI: ${INSTALL_LOCAL_AI:-false}
+    ports:
+      - "8003:8000"
+    environment:
+      <<: *common-environment
+      METRICS_PORT: 8000
+      TRANSCRIPTION_CONCURRENCY: ${TRANSCRIPTION_CONCURRENCY:-3}
+      TRANSCRIPTION_PROVIDER: ${TRANSCRIPTION_PROVIDER:-simulated}
+      WHISPER_MODEL: base
+      FAIL_SEGMENT_NUMBER: ${FAIL_SEGMENT_NUMBER:-}
+    depends_on:
+      postgres: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+    volumes:
+      - audio-data:/data/audio-jobs
+      - whisper-models:/root/.cache/huggingface
+    restart: unless-stopped
+
+  translation-service:
+    build:
+      context: .
+      dockerfile: translation_service/Dockerfile
+    ports:
+      - "8004:8000"
+    environment:
+      <<: *common-environment
+      METRICS_PORT: 8000
+      TRANSLATION_PROVIDER: ${TRANSLATION_PROVIDER:-simulated}
+      TRANSLATION_MODEL: qwen2.5:3b
+      OLLAMA_URL: http://host.docker.internal:11434
+      TRANSLATION_TIMEOUT_SECONDS: 180
+      CIRCUIT_FAILURE_THRESHOLD: 3
+      CIRCUIT_RESET_SECONDS: 30
+      TRANSLATION_FORCE_FAILURE: ${TRANSLATION_FORCE_FAILURE:-false}
+    depends_on:
+      postgres: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - job-service
+      - audio-service
+      - transcription-service
+      - translation-service
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres-data:
+  audio-data:
+  whisper-models:
