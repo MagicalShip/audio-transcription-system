@@ -7,9 +7,9 @@
 **Services:**
 
 1. **Job Service - Cao, Mingshu:** upload API and UI, job state, result ordering, overlap removal and final result.
-2. **Audio Service - Liu, Yingqi:** validates duration, stores audio on a shared volume, creates overlapping segments and publishes references.
+2. **Audio Service - Zhang, Zhexi:** validates duration, stores audio on a shared volume, creates overlapping segments and publishes references.
 3. **Transcription Service - Yokoi, Yuki:** a worker pool processes segments in parallel, retries failures and stores idempotent results.
-4. **Translation Service - Zhang, Zhexi:** translates the completed transcript from English to Chinese with timeout, retry and circuit breaker.
+4. **Translation Service - Liu, Yingqi:** translates the completed transcript from English to Chinese with timeout, retry and circuit breaker.
 
 RabbitMQ provides the asynchronous pipeline, PostgreSQL stores job and idempotency state, a Docker shared volume stores audio, and Prometheus/Grafana provide metrics. Results record model and prompt versions, processing time and token counts.
 

@@ -66,9 +66,9 @@ RabbitMQ carries small JSON events and file references only. Audio is stored onc
 | Service and owner | Main implementation | Distributed-systems point for viva |
 |---|---|---|
 | Job Service — Cao, Mingshu | Upload API/UI, validation, job state, outbox/inbox, ordering, overlap removal, final result | State ownership, consistency and transactional outbox |
-| Audio Service — Liu, Yingqi | Validate 30-minute PCM WAV limit, segment with 0.5 s overlap, shared-volume files, publish tasks | Back-pressure, file references, idempotent segmentation |
+| Audio Service — Zhang, Zhexi | Validate 30-minute PCM WAV limit, segment with 0.5 s overlap, shared-volume files, publish tasks | Back-pressure, file references, idempotent segmentation |
 | Transcription Service — Yokoi, Yuki | Worker pool, model adapter, retries, result cache, processing metrics | Competing consumers, redelivery and `(job_id, segment_number)` idempotency |
-| Translation Service — Zhang, Zhexi | English-to-Chinese adapter, timeout, retry, circuit breaker, token/time metrics | Resilient AI call, degraded result when translation is unavailable |
+| Translation Service — Liu, Yingqi | English-to-Chinese adapter, timeout, retry, circuit breaker, token/time metrics | Resilient AI call, degraded result when translation is unavailable |
 
 All four services are independently deployable containers. PostgreSQL, RabbitMQ, a shared audio volume and monitoring are infrastructure, not extra application services.
 

@@ -5,9 +5,9 @@ Replace planned work with the actual work evidenced by commits before all member
 | Member | Service owned | ADR owned | Report/demo evidence |
 |---|---|---|---|
 | Cao, Mingshu | Job Service | ADR-002 and ADR-005 | State, reassembly, outbox/inbox |
-| Liu, Yingqi | Audio Service | ADR-003 | Segmentation, shared storage, back-pressure |
+| Liu, Yingqi | Translation Service | ADR-004 | Timeout, retry, circuit breaker, AI metrics |
 | Yokoi, Yuki | Transcription Service | ADR-001 | Worker pool, redelivery, idempotency |
-| Zhang, Zhexi | Translation Service | ADR-004 | Timeout, retry, circuit breaker, AI metrics |
+| Zhang, Zhexi | Audio Service | ADR-003 | Segmentation, shared storage, back-pressure |
 
 Signatures and date:
 

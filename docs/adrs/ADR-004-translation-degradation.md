@@ -12,7 +12,7 @@ This decision must be reopened if Chinese output becomes legally required for ev
 
 ## Decision
 
-Zhang, Zhexi will time out a translation attempt after 180 seconds, retry twice with 1- and 2-second backoff, and open a circuit for 30 seconds after three consecutive failures. Job Service will keep the English transcript, label the job `PARTLY_DONE`, and expose a manual translation retry.
+Liu, Yingqi will time out a translation attempt after 180 seconds, retry twice with 1- and 2-second backoff, and open a circuit for 30 seconds after three consecutive failures. Job Service will keep the English transcript, label the job `PARTLY_DONE`, and expose a manual translation retry.
 
 ## Consequences
 

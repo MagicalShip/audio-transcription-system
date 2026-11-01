@@ -12,7 +12,7 @@ This decision must be reopened if deployment cannot provide storage shared by ev
 
 ## Decision
 
-Liu, Yingqi will store each source and segment once on a Docker shared volume. RabbitMQ messages will contain the relative file reference, job ID, segment number and timing metadata only.
+Zhang, Zhexi will store each source and segment once on a Docker shared volume. RabbitMQ messages will contain the relative file reference, job ID, segment number and timing metadata only.
 
 ## Consequences
 
